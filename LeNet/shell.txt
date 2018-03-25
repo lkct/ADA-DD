@@ -1,0 +1,5 @@
+# train with 
+python -u lenet.py --gpus=0 --lr 0.1
+
+# load from checkpoint
+python -u lenet.py --gpus=0 --model-load-epoch=1 --retrain --lr 0.01
