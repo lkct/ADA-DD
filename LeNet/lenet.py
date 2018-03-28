@@ -8,13 +8,15 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def lenet(num_class=10, **kwargs):
+def lenet(num_class=10):
     data = mx.sym.Variable('data')
-    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=20)
+    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=20, no_bias=True)
+    data = mx.sym.BatchNorm(data=data, eps=1e-5, fix_gamma=False)
     data = mx.sym.Activation(data=data, act_type='relu')
     data = mx.sym.Pooling(data=data, kernel=(
         2, 2), pool_type='max', stride=(2, 2))
-    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=50)
+    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=50, no_bias=True)
+    data = mx.sym.BatchNorm(data=data, eps=1e-5, fix_gamma=False)
     data = mx.sym.Activation(data=data, act_type='relu')
     data = mx.sym.Pooling(data=data, kernel=(
         2, 2), pool_type='max', stride=(2, 2))
@@ -22,8 +24,8 @@ def lenet(num_class=10, **kwargs):
     data = mx.sym.FullyConnected(data=data, num_hidden=1000)
     data = mx.sym.Activation(data=data, act_type='relu')
     data = mx.sym.FullyConnected(data=data, num_hidden=num_class)
-    return mx.sym.SoftmaxOutput(data=data, name='softmax')
 
+    return mx.sym.SoftmaxOutput(data=data, name='softmax')
 
 def main():
     symbol = lenet(num_class=args.num_classes)
