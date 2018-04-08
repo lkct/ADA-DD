@@ -1,4 +1,6 @@
 LeNet/*.gz
+LeNet/*ubyte
 LeNet/model
 LeNet/predict
 aug/*ubyte
+aug/vis.bmp

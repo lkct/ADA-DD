@@ -1,8 +1,10 @@
 import argparse
 import logging
 import os
+import struct
 
 import mxnet as mx
+import numpy as np
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -11,6 +13,28 @@ logger.setLevel(logging.INFO)
 def multi_factor_scheduler(begin_epoch, epoch_size, step, factor=0.1):
     step_ = [epoch_size * (x-begin_epoch) for x in step if x-begin_epoch > 0]
     return mx.lr_scheduler.MultiFactorScheduler(step=step_, factor=factor) if len(step_) else None
+
+
+def get_mnist():
+    def read_data(label_url, image_url):
+        with open(label_url) as flbl:
+            struct.unpack(">II", flbl.read(8))
+            label = np.fromstring(flbl.read(), dtype=np.int8)
+        with open(image_url, 'rb') as fimg:
+            _, _, rows, cols = struct.unpack(">IIII", fimg.read(16))
+            image = np.fromstring(fimg.read(), dtype=np.uint8).reshape(
+                len(label), rows, cols)
+            image = image.reshape(
+                image.shape[0], 1, 28, 28).astype(np.float32)/255
+        return (label, image)
+
+    path = './'
+    (train_lbl, train_img) = read_data(
+        path+'train-labels.idx1-ubyte', path+'train-images.idx3-ubyte')
+    (test_lbl, test_img) = read_data(
+        path+'t10k-labels.idx1-ubyte', path+'t10k-images.idx3-ubyte')
+    return {'train_data': train_img, 'train_label': train_lbl,
+            'test_data': test_img, 'test_label': test_lbl}
 
 
 def lenet(num_class=10):
@@ -40,7 +64,8 @@ def main():
     devs = mx.cpu() if args.gpus is None else [
         mx.gpu(int(i)) for i in args.gpus.split(',')]
     begin_epoch = args.model_load_epoch if args.retrain else 0
-    epoch_size = max(int(args.num_examples / args.batch_size / kv.num_workers), 1)
+    epoch_size = max(
+        int(args.num_examples / args.batch_size / kv.num_workers), 1)
     if not os.path.exists("./model"):
         os.mkdir("./model")
     model_prefix = "model/lenet-mnist-{}".format(kv.rank)
@@ -51,7 +76,7 @@ def main():
     if args.retrain:
         _, arg_params, aux_params = mx.model.load_checkpoint(
             model_prefix, args.model_load_epoch)
-    mnist = mx.test_utils.get_mnist()
+    mnist = get_mnist()
     train = mx.io.NDArrayIter(
         data=mnist['train_data'], label=mnist['train_label'], batch_size=args.batch_size, shuffle=True)
     val = mx.io.NDArrayIter(
