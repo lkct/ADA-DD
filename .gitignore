@@ -1,3 +1,4 @@
 LeNet/*.gz
 LeNet/model
 LeNet/predict
+aug/*ubyte
