@@ -15,7 +15,7 @@ def multi_factor_scheduler(begin_epoch, epoch_size, step, factor=0.1):
     return mx.lr_scheduler.MultiFactorScheduler(step=step_, factor=factor) if len(step_) else None
 
 
-def get_mnist():
+def get_mnist(lbl, img):
     def read_data(label_url, image_url):
         with open(label_url) as flbl:
             struct.unpack(">II", flbl.read(8))
@@ -29,8 +29,7 @@ def get_mnist():
         return (label, image)
 
     path = './'
-    (test_lbl, test_img) = read_data(
-        path+'t10k-labels.idx1-ubyte', path+'t10k-images.idx3-ubyte')
+    (test_lbl, test_img) = read_data(path+lbl, path+img)
     return {'test_data': test_img, 'test_label': test_lbl}
 
 
@@ -41,7 +40,7 @@ def main():
     model_prefix = "model/lenet-mnist-{}".format(kv.rank)
     symbol, arg_params, aux_params = mx.model.load_checkpoint(
         model_prefix, args.model_load_epoch)
-    mnist = get_mnist()
+    mnist = get_mnist(args.label, args.image)
     val = mx.io.NDArrayIter(
         data=mnist['test_data'], label=mnist['test_label'], batch_size=args.batch_size)
     model = mx.mod.Module(symbol=symbol, context=devs)
@@ -64,6 +63,10 @@ if __name__ == "__main__":
                         help='the kvstore type')
     parser.add_argument('--model-load-epoch', type=int, default=30,
                         help='load the model on an epoch using the model-load-prefix')
+    parser.add_argument('--image', type=str, default='emnist-mnist-train-images-idx3-ubyte',
+                        help='the kvstore type')
+    parser.add_argument('--label', type=str, default='emnist-mnist-train-labels-idx1-ubyte',
+                        help='the kvstore type')
     args = parser.parse_args()
     logging.info(args)
     main()
