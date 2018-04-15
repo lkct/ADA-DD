@@ -2,8 +2,4 @@
 
 set -e
 
-for i in ./*idx3-ubyte
-do
-    echo $i
-    python -u trans.py --file $i
-done
+ls *idx3-ubyte | xargs -n 1 -I {} -P 10 sh -c 'echo {};python -u trans.py --file {}'
