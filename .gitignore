@@ -4,3 +4,6 @@ LeNet/model
 LeNet/predict
 aug/*ubyte
 aug/vis.bmp
+aug/.DS_Store
+aug/.ipynb_checkpoints
+aug/Untitled.ipynb
