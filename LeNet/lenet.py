@@ -10,6 +10,11 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+<<<<<<< HEAD
+def lenet(num_class=10):
+    data = mx.sym.Variable('data')
+    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=20, no_bias=True)
+=======
 def multi_factor_scheduler(begin_epoch, epoch_size, step, factor=0.1):
     step_ = [epoch_size * (x-begin_epoch) for x in step if x-begin_epoch > 0]
     return mx.lr_scheduler.MultiFactorScheduler(step=step_, factor=factor) if len(step_) else None
@@ -41,12 +46,17 @@ def lenet(num_class=10):
     data = mx.sym.Variable('data')
     data = mx.sym.Convolution(data=data, kernel=(
         5, 5), num_filter=20, no_bias=True)
+>>>>>>> upstream/master
     data = mx.sym.BatchNorm(data=data, eps=1e-5, fix_gamma=False)
     data = mx.sym.Activation(data=data, act_type='relu')
     data = mx.sym.Pooling(data=data, kernel=(
         2, 2), pool_type='max', stride=(2, 2))
+<<<<<<< HEAD
+    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=50, no_bias=True)
+=======
     data = mx.sym.Convolution(data=data, kernel=(
         5, 5), num_filter=50, no_bias=True)
+>>>>>>> upstream/master
     data = mx.sym.BatchNorm(data=data, eps=1e-5, fix_gamma=False)
     data = mx.sym.Activation(data=data, act_type='relu')
     data = mx.sym.Pooling(data=data, kernel=(
@@ -55,8 +65,8 @@ def lenet(num_class=10):
     data = mx.sym.FullyConnected(data=data, num_hidden=1000)
     data = mx.sym.Activation(data=data, act_type='relu')
     data = mx.sym.FullyConnected(data=data, num_hidden=num_class)
-    return mx.sym.SoftmaxOutput(data=data, name='softmax')
 
+    return mx.sym.SoftmaxOutput(data=data, name='softmax')
 
 def main():
     symbol = lenet(num_class=args.num_classes)
