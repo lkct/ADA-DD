@@ -95,16 +95,14 @@ def generate_batch(im):
     return data_batch, DATA_NAMES, im_scale
 
 
-def demo_net(predictor, image_name, vis=False):
+def demo_net(predictor, im, vis=False):
     """
     generate data_batch -> im_detect -> post process
     :param predictor: Predictor
-    :param image_name: image name
+    :param im: image array
     :param vis: will save as a new image if not visualized
     :return: None
     """
-    assert os.path.exists(image_name), image_name + ' not found'
-    im = cv2.imread(image_name)
     data_batch, data_names, im_scale = generate_batch(im)
     scores, boxes, data_dict = im_detect(predictor, data_batch, data_names, im_scale)
 
@@ -153,7 +151,9 @@ def main():
     ctx = mx.gpu(args.gpu)
     symbol = get_vgg_test(num_classes=config.NUM_CLASSES, num_anchors=config.NUM_ANCHORS)
     predictor = get_net(symbol, args.prefix, args.epoch, ctx)
-    demo_net(predictor, args.image, args.vis)
+    assert os.path.exists(args.image), args.image + ' not found'
+    im = cv2.imread(args.image)
+    demo_net(predictor, im, args.vis)
 
 
 if __name__ == '__main__':
