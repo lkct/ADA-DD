@@ -10,11 +10,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-<<<<<<< HEAD
-def lenet(num_class=10):
-    data = mx.sym.Variable('data')
-    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=20, no_bias=True)
-=======
 def multi_factor_scheduler(begin_epoch, epoch_size, step, factor=0.1):
     step_ = [epoch_size * (x-begin_epoch) for x in step if x-begin_epoch > 0]
     return mx.lr_scheduler.MultiFactorScheduler(step=step_, factor=factor) if len(step_) else None
@@ -31,6 +26,7 @@ def get_mnist():
                 len(label), rows, cols)
             image = image.reshape(
                 image.shape[0], 1, 28, 28).astype(np.float32)/255
+            image = np.tile(image, (1, 3, 1, 1))
         return (label, image)
 
     path = './'
@@ -42,34 +38,30 @@ def get_mnist():
             'test_data': test_img, 'test_label': test_lbl}
 
 
-def lenet(num_class=10):
-    data = mx.sym.Variable('data')
-    data = mx.sym.Convolution(data=data, kernel=(
-        5, 5), num_filter=20, no_bias=True)
->>>>>>> upstream/master
-    data = mx.sym.BatchNorm(data=data, eps=1e-5, fix_gamma=False)
-    data = mx.sym.Activation(data=data, act_type='relu')
-    data = mx.sym.Pooling(data=data, kernel=(
-        2, 2), pool_type='max', stride=(2, 2))
-<<<<<<< HEAD
-    data = mx.sym.Convolution(data=data, kernel=(5, 5), num_filter=50, no_bias=True)
-=======
-    data = mx.sym.Convolution(data=data, kernel=(
-        5, 5), num_filter=50, no_bias=True)
->>>>>>> upstream/master
-    data = mx.sym.BatchNorm(data=data, eps=1e-5, fix_gamma=False)
-    data = mx.sym.Activation(data=data, act_type='relu')
-    data = mx.sym.Pooling(data=data, kernel=(
-        2, 2), pool_type='max', stride=(2, 2))
-    data = mx.sym.Flatten(data=data)
-    data = mx.sym.FullyConnected(data=data, num_hidden=1000)
-    data = mx.sym.Activation(data=data, act_type='relu')
-    data = mx.sym.FullyConnected(data=data, num_hidden=num_class)
+def lenet(num_classes=10):
+    data = mx.symbol.Variable('data')
+    # first conv
+    conv1 = mx.symbol.Convolution(data=data, kernel=(5, 5), num_filter=20)
+    relu1 = mx.symbol.Activation(data=conv1, act_type="relu")
+    pool1 = mx.symbol.Pooling(data=relu1, pool_type="max",
+                              kernel=(2, 2), stride=(2, 2))
+    # second conv
+    conv2 = mx.symbol.Convolution(data=pool1, kernel=(5, 5), num_filter=50)
+    relu2 = mx.symbol.Activation(data=conv2, act_type="relu")
+    pool2 = mx.symbol.Pooling(data=relu2, pool_type="max",
+                              kernel=(2, 2), stride=(2, 2))
+    # first fullc
+    flatten = mx.symbol.Flatten(data=pool2)
+    fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name='fc6')
+    relu3 = mx.symbol.Activation(data=fc1, act_type="relu")
+    # second fullc
+    fc2 = mx.symbol.FullyConnected(data=relu3, num_hidden=num_classes, name='fc7')
+    # loss
+    return mx.symbol.SoftmaxOutput(data=fc2, name='softmax')
 
-    return mx.sym.SoftmaxOutput(data=data, name='softmax')
 
 def main():
-    symbol = lenet(num_class=args.num_classes)
+    symbol = lenet(num_classes=args.num_classes)
     kv = mx.kvstore.create(args.kv_store)
     devs = mx.cpu() if args.gpus is None else [
         mx.gpu(int(i)) for i in args.gpus.split(',')]
