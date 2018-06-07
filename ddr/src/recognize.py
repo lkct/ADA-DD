@@ -77,5 +77,5 @@ def annotate_recognition(im, regions, labels, font, color=255):
     size = get_font_size(font)
     for idx, (x, y, w, h) in enumerate(regions):
         draw.text(
-            (x+w-size, y+h-size), str(labels[idx]), font=font, fill=color)
+            (x, y+h), str(labels[idx]), font=font, fill=color)
     return clone

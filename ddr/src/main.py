@@ -22,7 +22,7 @@ TEST_FILES = '../preproc/'
 RESULT_FILES = '../results/'
 
 FONT_FILE = 'UbuntuMono-R.ttf'
-FONT_SIZE = 30
+FONT_SIZE = 24
 TEST_FONT = '5'
 TRAIN_SIZE = 10000
 
@@ -34,11 +34,39 @@ bin_n = 16  # Number of bins
 affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
 
 
+def overlap(d1, d2):
+    x11, y11, x12, y12 = (d1[0], d1[1], d1[0]+d1[2], d1[1]+d1[3])
+    x21, y21, x22, y22 = (d2[0], d2[1], d2[0]+d2[2], d2[1]+d2[3])
+    return (x11 <= x21) and (y11 <= y21) and(x12 >= x22) and (y12 >= y22)
+
+
+def choose(digits, lab, prob):
+    chosen = []
+    n = lab.size
+    for i in range(n):
+        if prob[i] >= 0.5:
+            continue
+        flag = False
+        for j in range(n):
+            if j == i:
+                continue
+            if overlap(digits[i], digits[j]):
+                flag = True
+                break
+        if not flag:
+            chosen.append(i)
+    chosen = np.uint8(chosen)
+    digits = digits[chosen]
+    lab = lab[chosen]
+    prob = prob[chosen]
+    return digits, lab, prob
+
+
 def main():
     images, labels, num, rows, cols = get_data(LABEL_FILE,
                                                IMAGE_FILE)
 
-    filenames = glob(TEST_FILES + "2.jpg")
+    filenames = glob(TEST_FILES + "*.jpg")
     for filename in filenames:
         print 'Processing', filename
         img = cv2.imread(filename)
@@ -52,6 +80,9 @@ def main():
 
         # yhat:list of str=label+prob
         lab, prob = pred.main(test)
+
+        digits, lab, prob = choose(digits, lab, prob)
+
         yhat = ['%d,%.2f' % (lab[i], prob[i]) for i in range(lab.size)]
 
         font = ImageFont.truetype(FONT_FILE, FONT_SIZE)
