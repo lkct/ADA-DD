@@ -177,7 +177,7 @@ class IMDB(object):
         :return: roidb: [image_index]['boxes', 'gt_classes', 'gt_overlaps', 'flipped']
         """
         logger.info('%s append flipped images to roidb' % self.name)
-        assert self.num_images == len(roidb)
+        assert self.num_images == len(roidb), '%d-%d'%(self.num_images,len(roidb))
         for i in range(self.num_images):
             roi_rec = roidb[i]
             boxes = roi_rec['boxes'].copy()

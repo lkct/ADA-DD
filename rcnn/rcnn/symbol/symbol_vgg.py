@@ -20,22 +20,40 @@ from rcnn.config import config
 from . import proposal
 from . import proposal_target
 
+def residual_unit(data, num_filter, stride, dim_match, bn_mom=0.9):
+    bn1 = mx.sym.BatchNorm(data, fix_gamma=False, momentum=bn_mom, eps=2e-5)
+    relu1 = mx.sym.Activation(bn1, act_type='relu')
+    conv1 = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(3, 3), stride=stride, pad=(1, 1), no_bias=True)
+    bn2 = mx.sym.BatchNorm(conv1, fix_gamma=False, momentum=bn_mom, eps=2e-5)
+    relu2 = mx.sym.Activation(bn2, act_type='relu')
+    conv2 = mx.sym.Convolution(relu2, num_filter=num_filter, kernel=(3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
+    if dim_match:
+        shortcut = data
+    else:
+        shortcut = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(1, 1), stride=stride, no_bias=True)
+    return conv2 + shortcut
+
+
 def get_vgg_conv(data):
     """
     shared convolutional layers
     :param data: Symbol
     :return: Symbol
     """
-    # first conv
-    conv1 = mx.symbol.Convolution(data=data, kernel=(5,5), num_filter=20)
-    relu1 = mx.symbol.Activation(data=conv1, act_type="relu")
-    pool1 = mx.symbol.Pooling(data=relu1, pool_type="max",
-                              kernel=(2,2), stride=(2,2))
-    # second conv
-    conv2 = mx.symbol.Convolution(data=pool1, kernel=(5,5), num_filter=50)
-    relu2 = mx.symbol.Activation(data=conv2, act_type="relu")
+    bn_mom=0.9
+    data = mx.sym.BatchNorm(data, fix_gamma=True, eps=2e-5, momentum=bn_mom)
 
-    return relu2
+    conv1 = mx.sym.Convolution(data, num_filter=16, kernel=(3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
+    body = residual_unit(conv1, 16, (1, 1), False)
+    body = residual_unit(body, 16, (1, 1), True)
+    body = residual_unit(body, 32, (2, 2), False)
+    body = residual_unit(body, 32, (1, 1), True)
+    body = residual_unit(body, 64, (2, 2), False)
+    body = residual_unit(body, 64, (1, 1), True)
+    bn1 = mx.sym.BatchNorm(body, fix_gamma=False, eps=2e-5, momentum=bn_mom)
+    relu1 = mx.sym.Activation(bn1, act_type='relu')
+
+    return relu1
 
 
 def get_vgg_rcnn(num_classes=config.NUM_CLASSES):
@@ -61,14 +79,14 @@ def get_vgg_rcnn(num_classes=config.NUM_CLASSES):
 
     # Fast R-CNN
     pool5 = mx.symbol.ROIPooling(
-        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(4, 4), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
+        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(7, 7), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
     # group 6
     flatten = mx.symbol.Flatten(data=pool5, name="flatten")
     fc6 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name="fc6")
     relu6 = mx.symbol.Activation(data=fc6, act_type="relu", name="relu6")
     drop6 = mx.symbol.Dropout(data=relu6, p=0.5, name="drop6")
     # group 7
-    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=10, name="fc7")
+    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=120, name="fc7")
     relu7 = mx.symbol.Activation(data=fc7, act_type="relu", name="relu7")
     drop7 = mx.symbol.Dropout(data=relu7, p=0.5, name="drop7")
     # classification
@@ -105,14 +123,14 @@ def get_vgg_rcnn_test(num_classes=config.NUM_CLASSES):
 
     # Fast R-CNN
     pool5 = mx.symbol.ROIPooling(
-        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(4, 4), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
+        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(7, 7), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
     # group 6
     flatten = mx.symbol.Flatten(data=pool5, name="flatten")
     fc6 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name="fc6")
     relu6 = mx.symbol.Activation(data=fc6, act_type="relu", name="relu6")
     drop6 = mx.symbol.Dropout(data=relu6, p=0.5, name="drop6")
     # group 7
-    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=10, name="fc7")
+    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=120, name="fc7")
     relu7 = mx.symbol.Activation(data=fc7, act_type="relu", name="relu7")
     drop7 = mx.symbol.Dropout(data=relu7, p=0.5, name="drop7")
     # classification
@@ -260,14 +278,14 @@ def get_vgg_test(num_classes=config.NUM_CLASSES, num_anchors=config.NUM_ANCHORS)
 
     # Fast R-CNN
     pool5 = mx.symbol.ROIPooling(
-        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(4, 4), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
+        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(7, 7), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
     # group 6
     flatten = mx.symbol.Flatten(data=pool5, name="flatten")
     fc6 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name="fc6")
     relu6 = mx.symbol.Activation(data=fc6, act_type="relu", name="relu6")
     drop6 = mx.symbol.Dropout(data=relu6, p=0.5, name="drop6")
     # group 7
-    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=10, name="fc7")
+    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=120, name="fc7")
     relu7 = mx.symbol.Activation(data=fc7, act_type="relu", name="relu7")
     drop7 = mx.symbol.Dropout(data=relu7, p=0.5, name="drop7")
     # classification
@@ -353,14 +371,14 @@ def get_vgg_train(num_classes=config.NUM_CLASSES, num_anchors=config.NUM_ANCHORS
 
     # Fast R-CNN
     pool5 = mx.symbol.ROIPooling(
-        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(4, 4), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
+        name='roi_pool5', data=relu5_3, rois=rois, pooled_size=(7, 7), spatial_scale=1.0 / config.RCNN_FEAT_STRIDE)
     # group 6
     flatten = mx.symbol.Flatten(data=pool5, name="flatten")
     fc6 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name="fc6")
     relu6 = mx.symbol.Activation(data=fc6, act_type="relu", name="relu6")
     drop6 = mx.symbol.Dropout(data=relu6, p=0.5, name="drop6")
     # group 7
-    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=10, name="fc7")
+    fc7 = mx.symbol.FullyConnected(data=drop6, num_hidden=120, name="fc7")
     relu7 = mx.symbol.Activation(data=fc7, act_type="relu", name="relu7")
     drop7 = mx.symbol.Dropout(data=relu7, p=0.5, name="drop7")
     # classification

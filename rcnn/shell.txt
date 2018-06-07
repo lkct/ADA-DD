@@ -1,0 +1,5 @@
+python train_e2e.py
+
+python demo.py --prefix model/e2e --epoch 0 --image 000001.jpg --gpu 0 --vis
+
+python test.py --prefix model/e2e --epoch 0

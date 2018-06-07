@@ -38,26 +38,64 @@ def get_mnist():
             'test_data': test_img, 'test_label': test_lbl}
 
 
-def lenet(num_classes=10):
-    data = mx.symbol.Variable('data')
-    # first conv
-    conv1 = mx.symbol.Convolution(data=data, kernel=(5, 5), num_filter=20)
-    relu1 = mx.symbol.Activation(data=conv1, act_type="relu")
-    pool1 = mx.symbol.Pooling(data=relu1, pool_type="max",
-                              kernel=(2, 2), stride=(2, 2))
-    # second conv
-    conv2 = mx.symbol.Convolution(data=pool1, kernel=(5, 5), num_filter=50)
-    relu2 = mx.symbol.Activation(data=conv2, act_type="relu")
-    pool2 = mx.symbol.Pooling(data=relu2, pool_type="max",
-                              kernel=(2, 2), stride=(2, 2))
-    # first fullc
-    flatten = mx.symbol.Flatten(data=pool2)
-    fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name='fc6')
-    relu3 = mx.symbol.Activation(data=fc1, act_type="relu")
-    # second fullc
-    fc2 = mx.symbol.FullyConnected(data=relu3, num_hidden=num_classes, name='fc7')
-    # loss
-    return mx.symbol.SoftmaxOutput(data=fc2, name='softmax')
+# def lenet(num_classes=10):
+#     data = mx.symbol.Variable('data')
+#     # first conv
+#     conv1 = mx.symbol.Convolution(data=data, kernel=(5, 5), num_filter=20)
+#     relu1 = mx.symbol.Activation(data=conv1, act_type="relu")
+#     pool1 = mx.symbol.Pooling(data=relu1, pool_type="max",
+#                               kernel=(2, 2), stride=(2, 2))
+#     # second conv
+#     conv2 = mx.symbol.Convolution(data=pool1, kernel=(5, 5), num_filter=50)
+#     relu2 = mx.symbol.Activation(data=conv2, act_type="relu")
+#     pool2 = mx.symbol.Pooling(data=relu2, pool_type="max",
+#                               kernel=(2, 2), stride=(2, 2))
+#     # first fullc
+#     flatten = mx.symbol.Flatten(data=pool2)
+#     fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=500, name='fc6')
+#     relu3 = mx.symbol.Activation(data=fc1, act_type="relu")
+#     # second fullc
+#     fc2 = mx.symbol.FullyConnected(data=relu3, num_hidden=120, name='fc7')
+#     relu4 = mx.symbol.Activation(data=fc2, act_type="relu")
+#     # third fullc
+#     fc3 = mx.symbol.FullyConnected(data=relu4, num_hidden=num_classes)
+#     # loss
+#     return mx.symbol.SoftmaxOutput(data=fc3, name='softmax')
+def residual_unit(data, num_filter, stride, dim_match, bn_mom=0.9):
+    bn1 = mx.sym.BatchNorm(data, fix_gamma=False, momentum=bn_mom, eps=2e-5)
+    relu1 = mx.sym.Activation(bn1, act_type='relu')
+    conv1 = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(3, 3), stride=stride, pad=(1, 1), no_bias=True)
+    bn2 = mx.sym.BatchNorm(conv1, fix_gamma=False, momentum=bn_mom, eps=2e-5)
+    relu2 = mx.sym.Activation(bn2, act_type='relu')
+    conv2 = mx.sym.Convolution(relu2, num_filter=num_filter, kernel=(3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
+    if dim_match:
+        shortcut = data
+    else:
+        shortcut = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(1, 1), stride=stride, no_bias=True)
+    return conv2 + shortcut
+
+
+def lenet(num_classes=10, bn_mom=0.9):
+    data = mx.sym.Variable('data')
+    data = mx.sym.BatchNorm(data, fix_gamma=True, eps=2e-5, momentum=bn_mom)
+
+    conv1 = mx.sym.Convolution(data, num_filter=16, kernel=(3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
+    body = residual_unit(conv1, 16, (1, 1), False)
+    body = residual_unit(body, 16, (1, 1), True)
+    body = residual_unit(body, 32, (2, 2), False)
+    body = residual_unit(body, 32, (1, 1), True)
+    body = residual_unit(body, 64, (2, 2), False)
+    body = residual_unit(body, 64, (1, 1), True)
+    bn1 = mx.sym.BatchNorm(body, fix_gamma=False, eps=2e-5, momentum=bn_mom)
+    relu1 = mx.sym.Activation(bn1, act_type='relu')
+
+    flat = mx.symbol.Flatten(relu1)
+    fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=500, name='fc6')
+    relu2 = mx.symbol.Activation(data=fc1, act_type="relu")
+    fc2 = mx.symbol.FullyConnected(data=relu2, num_hidden=120, name='fc7')
+    relu3 = mx.symbol.Activation(data=fc2, act_type="relu")
+    fc3 = mx.symbol.FullyConnected(data=relu3, num_hidden=num_classes)
+    return mx.symbol.SoftmaxOutput(data=fc3, name='softmax')
 
 
 def main():
@@ -81,12 +119,19 @@ def main():
     mnist = get_mnist()
     train = mx.io.NDArrayIter(
         data=mnist['train_data'], label=mnist['train_label'], batch_size=args.batch_size, shuffle=True)
-    val = mx.io.NDArrayIter(
-        data=mnist['test_data'], label=mnist['test_label'], batch_size=args.batch_size)
+    val = mx.io.ImageRecordIter(
+        path_imgrec         = os.path.join("data", "rec.rec"),
+        label_width         = 1,
+        data_shape          = (3, 28, 28),
+        shuffle             = True,
+        num_parts           = kv.num_workers,
+        part_index          = kv.rank,
+        batch_size          = args.batch_size,
+    )
     model = mx.mod.Module(symbol=symbol, context=devs)
     model.fit(
-        train_data=train,
-        eval_data=val,
+        train_data=val,
+        eval_data=train,
         epoch_end_callback=checkpoint,
         batch_end_callback=speedometer,
         kvstore=kv,

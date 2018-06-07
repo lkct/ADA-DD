@@ -29,12 +29,9 @@ from rcnn.utils.load_model import load_param
 from rcnn.processing.nms import py_nms_wrapper, cpu_nms_wrapper, gpu_nms_wrapper
 
 
-CLASSES = ('__background__',
-           'aeroplane', 'bicycle', 'bird', 'boat',
-           'bottle', 'bus', 'car', 'cat', 'chair',
-           'cow', 'diningtable', 'dog', 'horse',
-           'motorbike', 'person', 'pottedplant',
-           'sheep', 'sofa', 'train', 'tvmonitor')
+CLASSES = ['__background__',
+           '0', '1', '2', '3',
+           '4', '5', '6', '7', '8', '9']
 config.TEST.HAS_RPN = True
 SHORT_SIDE = config.SCALES[0][0]
 LONG_SIDE = config.SCALES[0][1]

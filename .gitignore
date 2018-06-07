@@ -2,6 +2,7 @@ LeNet/*.gz
 LeNet/*ubyte
 LeNet/model
 LeNet/predict
+LeNet/data
 aug/*ubyte
 aug/vis.bmp
 aug/.DS_Store

@@ -26,6 +26,7 @@ def get_mnist(lbl, img):
                 len(label), rows, cols)
             image = image.reshape(
                 image.shape[0], 1, 28, 28).astype(np.float32)/255
+            image = np.tile(image, (1, 3, 1, 1))
         return (label, image)
 
     path = './'
