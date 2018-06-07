@@ -12,8 +12,8 @@ SZ = 28
 TEST_FONT = '5'
 
 bin_n = 16  # Number of bins
-svm_params = dict(kernel_type=cv2.SVM_LINEAR,
-                  svm_type=cv2.SVM_C_SVC)
+svm_params = dict(kernel_type=cv2.ml.SVM_LINEAR,
+                  svm_type=cv2.ml.SVM_C_SVC)
 
 affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
 
@@ -43,16 +43,16 @@ def hog(img):
 
 
 def cvtrain(images, labels, num, rows, cols):
-    svc = cv2.SVM()
+    # svc = cv2.SVM()
     traindata = preprocess(images, rows, cols)
-    responses = np.float32(labels[:, None])
-    svc.train(traindata, responses, params=svm_params)
+    responses = np.int_(labels[:, None])
+    # svc.train(traindata, responses, params=svm_params)
+    # return svc
+    svc = cv2.ml.SVM_create()
+    svc.setKernel(cv2.ml.SVM_LINEAR)
+    svc.setType(cv2.ml.SVM_C_SVC)
+    svc.train(traindata, cv2.ml.ROW_SAMPLE, responses)
     return svc
-#    svc = cv2.ml.SVM_create()
-#    svc.setKernel(cv2.ml.SVM_LINEAR)
-#    svm.setType(cv2.ml.SVM_C_SVC)
-#    svc.train(traindata, responses)
-#    return svc
 
 
 def sktrain(images, labels):
