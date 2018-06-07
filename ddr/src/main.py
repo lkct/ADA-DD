@@ -58,8 +58,6 @@ def main():
         yhat1 = yhat1.astype(np.uint8).ravel()
         yhat2 = svc2.predict(test)
 
-        print digits
-
         font = ImageFont.truetype(FONT_FILE, FONT_SIZE)
         detected = annotate_detection(im.copy(), digits)
 
