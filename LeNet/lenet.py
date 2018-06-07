@@ -25,7 +25,7 @@ def get_mnist():
             image = np.fromstring(fimg.read(), dtype=np.uint8).reshape(
                 len(label), rows, cols)
             image = image.reshape(
-                image.shape[0], 1, 28, 28).astype(np.float32)/255
+                image.shape[0], 1, 28, 28).astype(np.float32)
             image = np.tile(image, (1, 3, 1, 1))
         return (label, image)
 
@@ -130,8 +130,8 @@ def main():
     )
     model = mx.mod.Module(symbol=symbol, context=devs)
     model.fit(
-        train_data=val,
-        eval_data=train,
+        train_data=train,
+        eval_data=val,
         epoch_end_callback=checkpoint,
         batch_end_callback=speedometer,
         kvstore=kv,

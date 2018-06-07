@@ -9,6 +9,7 @@ from detect import detect, crop_detection, annotate_detection
 from load_labels import get_data
 from recognize import cvtrain, sktrain, preprocess
 from recognize import annotate_recognition
+import pred
 from glob import glob
 import os
 
@@ -26,7 +27,7 @@ TEST_FONT = '5'
 TRAIN_SIZE = 10000
 
 bin_n = 16  # Number of bins
-#svm_params = dict(kernel_type=cv2.SVM_LINEAR,
+# svm_params = dict(kernel_type=cv2.SVM_LINEAR,
 #                  svm_type=cv2.SVM_C_SVC,
 #                  C=2.67, gamma=5.383)
 
@@ -36,13 +37,8 @@ affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
 def main():
     images, labels, num, rows, cols = get_data(LABEL_FILE,
                                                IMAGE_FILE)
-    print 'Training OpenCV SVM...'
-    svc1 = cvtrain(images[:TRAIN_SIZE], labels[:TRAIN_SIZE], num, rows, cols)
 
-    print 'Training sklearn SVM...'
-    svc2 = sktrain(images[:TRAIN_SIZE], labels[:TRAIN_SIZE])
-
-    filenames = glob(TEST_FILES + "/*.jpg")
+    filenames = glob(TEST_FILES + "/2.jpg")
     for filename in filenames:
         print 'Processing', filename
         img = cv2.imread(filename)
@@ -51,12 +47,12 @@ def main():
         im = im.convert('L')
         digits = detect(gray, CASCADE_FILE)
         results = crop_detection(im.copy(), digits)
-        test = [np.float32(i.resize(SAMPLE_SIZE)).ravel() for i in results]
+        test = np.float32([np.float32(i.resize(SAMPLE_SIZE)) for i in results])
+        test = np.tile(test.reshape((-1, 1, 28, 28)), (1, 3, 1, 1))
 
-        testdata = preprocess(test, rows, cols).reshape(-1, bin_n * 4)
-        yhat1 = svc1.predict(testdata)[1]
-        yhat1 = yhat1.astype(np.uint8).ravel()
-        yhat2 = svc2.predict(test)
+        # yhat:list of str=label+prob
+        lab, prob = pred.main(test)
+        yhat = ['%d,%.2f' % (lab[i], prob[i]) for i in range(lab.size)]
 
         font = ImageFont.truetype(FONT_FILE, FONT_SIZE)
         detected = annotate_detection(im.copy(), digits)
@@ -65,15 +61,9 @@ def main():
         resultname = RESULT_FILES + '/' + basename
 
         print 'OpenCV results'
-        recognized = annotate_recognition(detected, digits, yhat1, font)
+        recognized = annotate_recognition(detected, digits, yhat, font)
         recognized.show()
         recognized.save(resultname.replace('.jpg', '-cv.jpg'))
-
-        print 'sklearn results'
-        recognized = annotate_recognition(detected, digits, yhat2, font)
-        recognized.show()
-        recognized.save(resultname.replace('.jpg', '-sk.jpg'))
-        break
 
 
 if __name__ == '__main__':
