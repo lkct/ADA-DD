@@ -1,7 +1,7 @@
 import cv2
 from glob import glob
 
-filenames = glob("./*.jpg")
+filenames = glob("*.jpg")
 for f in filenames:
     img = cv2.imread(f)
     img = cv2.resize(img, None, fx=0.5, fy=0.5)
@@ -24,9 +24,17 @@ for f in filenames:
     img[:, :, 1] = img[:, :, 2]
 
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    out = oimg[0:900, 0:1600, :]
-    cv2.imshow(f, out)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-    #break
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    oimg = cv2.dilate(oimg, kernel, iterations=2)
+    # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    oimg = cv2.erode(oimg, kernel)
+ 
+    # out = oimg[0:900, 0:1600, :]
+    # cv2.imshow(f, out)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    cv2.imwrite('../preproc/'+f, oimg)
+
+    # break

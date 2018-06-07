@@ -18,7 +18,7 @@ SZ = 28
 LABEL_FILE = '../MNIST/train-labels.idx1-ubyte'
 IMAGE_FILE = '../MNIST/train-images.idx3-ubyte'
 CASCADE_FILE = '../classifier/cascade.xml'
-TEST_FILES = '../dev/'
+TEST_FILES = '../preproc/'
 RESULT_FILES = '../results/'
 
 FONT_FILE = 'UbuntuMono-R.ttf'
@@ -38,7 +38,7 @@ def main():
     images, labels, num, rows, cols = get_data(LABEL_FILE,
                                                IMAGE_FILE)
 
-    filenames = glob(TEST_FILES + "/2.jpg")
+    filenames = glob(TEST_FILES + "2.jpg")
     for filename in filenames:
         print 'Processing', filename
         img = cv2.imread(filename)
