@@ -34,8 +34,15 @@ def get_mnist():
         path+'train-labels.idx1-ubyte', path+'train-images.idx3-ubyte')
     (test_lbl, test_img) = read_data(
         path+'t10k-labels.idx1-ubyte', path+'t10k-images.idx3-ubyte')
-    return {'train_data': train_img, 'train_label': train_lbl,
-            'test_data': test_img, 'test_label': test_lbl}
+    path = './data/'
+    (etrain_lbl, etrain_img) = read_data(
+        path+'emnist-digits-train-labels.idx1-ubyte', path+'emnist-digits-train-images.idx3-ubyte')
+    (etest_lbl, etest_img) = read_data(
+        path+'emnist-digits-test-labels.idx1-ubyte', path+'emnist-digits-test-images.idx3-ubyte')
+
+    img = np.concatenate([train_img, test_img, etrain_img, etest_img], axis=0)
+    lbl = np.concatenate([train_lbl, test_lbl, etrain_lbl, etest_lbl], axis=0)
+    return {'train_data': img, 'train_label': lbl}
 
 
 # def lenet(num_classes=10):
@@ -64,14 +71,17 @@ def get_mnist():
 def residual_unit(data, num_filter, stride, dim_match, bn_mom=0.9):
     bn1 = mx.sym.BatchNorm(data, fix_gamma=False, momentum=bn_mom, eps=2e-5)
     relu1 = mx.sym.Activation(bn1, act_type='relu')
-    conv1 = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(3, 3), stride=stride, pad=(1, 1), no_bias=True)
+    conv1 = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(
+        3, 3), stride=stride, pad=(1, 1), no_bias=True)
     bn2 = mx.sym.BatchNorm(conv1, fix_gamma=False, momentum=bn_mom, eps=2e-5)
     relu2 = mx.sym.Activation(bn2, act_type='relu')
-    conv2 = mx.sym.Convolution(relu2, num_filter=num_filter, kernel=(3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
+    conv2 = mx.sym.Convolution(relu2, num_filter=num_filter, kernel=(
+        3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
     if dim_match:
         shortcut = data
     else:
-        shortcut = mx.sym.Convolution(relu1, num_filter=num_filter, kernel=(1, 1), stride=stride, no_bias=True)
+        shortcut = mx.sym.Convolution(
+            relu1, num_filter=num_filter, kernel=(1, 1), stride=stride, no_bias=True)
     return conv2 + shortcut
 
 
@@ -79,7 +89,8 @@ def lenet(num_classes=10, bn_mom=0.9):
     data = mx.sym.Variable('data')
     data = mx.sym.BatchNorm(data, fix_gamma=True, eps=2e-5, momentum=bn_mom)
 
-    conv1 = mx.sym.Convolution(data, num_filter=16, kernel=(3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
+    conv1 = mx.sym.Convolution(data, num_filter=16, kernel=(
+        3, 3), stride=(1, 1), pad=(1, 1), no_bias=True)
     body = residual_unit(conv1, 16, (1, 1), False)
     body = residual_unit(body, 16, (1, 1), True)
     body = residual_unit(body, 32, (2, 2), False)
@@ -120,13 +131,13 @@ def main():
     train = mx.io.NDArrayIter(
         data=mnist['train_data'], label=mnist['train_label'], batch_size=args.batch_size, shuffle=True)
     val = mx.io.ImageRecordIter(
-        path_imgrec         = os.path.join("data", "rec.rec"),
-        label_width         = 1,
-        data_shape          = (3, 28, 28),
-        shuffle             = True,
-        num_parts           = kv.num_workers,
-        part_index          = kv.rank,
-        batch_size          = args.batch_size,
+        path_imgrec=os.path.join("data", "rec.rec"),
+        label_width=1,
+        data_shape=(3, 28, 28),
+        shuffle=True,
+        num_parts=kv.num_workers,
+        part_index=kv.rank,
+        batch_size=args.batch_size,
     )
     model = mx.mod.Module(symbol=symbol, context=devs)
     model.fit(
@@ -158,7 +169,7 @@ if __name__ == "__main__":
                         help='the batch size')
     parser.add_argument('--num-classes', type=int, default=10,
                         help='the class number of your task')
-    parser.add_argument('--num-examples', type=int, default=60000,
+    parser.add_argument('--num-examples', type=int, default=350000,  # 60000,
                         help='the number of training examples')
     parser.add_argument('--kv-store', type=str, default='device',
                         help='the kvstore type')

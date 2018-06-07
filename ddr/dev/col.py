@@ -19,10 +19,10 @@ for f in filenames:
     h, w, _ = img.shape
     for i in range(h):
         for j in range(w):
-            if img[i, j, 0] < 80:
+            if img[i, j, 0] < 88:
                 oimg[i, j] = 0
-    img[:, :, 0] = img[:, :, 2]
-    img[:, :, 1] = img[:, :, 2]
+    img[:, :, 2] = img[:, :, 0]
+    img[:, :, 1] = img[:, :, 0]
 
     # img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -31,7 +31,7 @@ for f in filenames:
     # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     oimg = cv2.erode(oimg, kernel)
 
-    out = oimg[0:900, 0:1600, :]
+    out = oimg[-900:-1, 0:1600, :]
     cv2.imshow(f, out)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

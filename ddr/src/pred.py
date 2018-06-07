@@ -14,7 +14,7 @@ def ch_dev(arg_params, aux_params, ctx):
 
 def main(imgs):
     ctx = mx.gpu(0)
-    sym, arg_params, aux_params = mx.model.load_checkpoint('../lenet-mnist-0', 7)
+    sym, arg_params, aux_params = mx.model.load_checkpoint('../lenet-mnist-0', 6)
     arg_params, aux_params = ch_dev(arg_params, aux_params, ctx)
     arg_params["data"] = mx.nd.array(imgs, ctx)
     arg_params["softmax_label"] = mx.nd.empty((imgs.shape[0],), ctx)

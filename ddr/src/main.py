@@ -37,20 +37,25 @@ affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
 def overlap(d1, d2):
     x11, y11, x12, y12 = (d1[0], d1[1], d1[0]+d1[2], d1[1]+d1[3])
     x21, y21, x22, y22 = (d2[0], d2[1], d2[0]+d2[2], d2[1]+d2[3])
-    return (x11 <= x21) and (y11 <= y21) and(x12 >= x22) and (y12 >= y22)
+    s = min(d1[2]*d1[3], d2[2]*d2[3])
+    x1 = max(x11, x21)
+    y1 = max(y11, y21)
+    x2 = min(x12, x22)
+    y2 = min(y12, y22)
+    dx = max(0, x2-x1)
+    dy = max(0, y2-y1)
+    return dx*dy / float(s)
 
 
 def choose(digits, lab, prob):
     chosen = []
     n = lab.size
     for i in range(n):
-        if prob[i] >= 0.5:
+        if prob[i] < 0.5:
             continue
         flag = False
-        for j in range(n):
-            if j == i:
-                continue
-            if overlap(digits[i], digits[j]):
+        for j in range(i - 1):
+            if overlap(digits[i], digits[j]) > 0.9:  # ==1
                 flag = True
                 break
         if not flag:
@@ -59,6 +64,24 @@ def choose(digits, lab, prob):
     digits = digits[chosen]
     lab = lab[chosen]
     prob = prob[chosen]
+
+    chosen = []
+    n = lab.size
+    for i in range(n):
+        flag = False
+        for j in range(n):
+            if j == i:
+                continue
+            if overlap(digits[i], digits[j]) >= 0.4 and prob[i] < prob[j]:
+                flag = True
+                break
+        if not flag:
+            chosen.append(i)
+    chosen = np.uint8(chosen)
+    digits = digits[chosen]
+    lab = lab[chosen]
+    prob = prob[chosen]
+
     return digits, lab, prob
 
 
@@ -74,6 +97,9 @@ def main():
         im = Image.open(filename)
         im = im.convert('L')
         digits = detect(gray, CASCADE_FILE)
+        digits = np.array(digits)
+        if digits.shape[0] == 0:
+            continue
         results = crop_detection(im.copy(), digits)
         test = np.float32([np.float32(i.resize(SAMPLE_SIZE)) for i in results])
         test = np.tile(test.reshape((-1, 1, 28, 28)), (1, 3, 1, 1))
