@@ -15,8 +15,7 @@ import os
 
 SAMPLE_SIZE = (28, 28)
 SZ = 28
-LABEL_FILE = '../MNIST/train-labels.idx1-ubyte'
-IMAGE_FILE = '../MNIST/train-images.idx3-ubyte'
+script_dir = os.path.dirname(__file__)
 CASCADE_FILE = '../classifier/cascade.xml'
 TEST_FILES = '../preproc/'
 RESULT_FILES = '../results/'
@@ -85,6 +84,37 @@ def choose(digits, lab, prob):
     return digits, lab, prob
 
 
+def recog(img, resname):
+    script_dir = os.path.dirname(__file__)
+    CASCADE_FILE = os.path.join(script_dir, '../classifier/cascade.xml')
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    im = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    im = im.convert('L')
+    digits = detect(gray, CASCADE_FILE)
+    digits = np.array(digits)
+    if digits.shape[0] == 0:
+        return digits, np.array([]), np.array([])
+    results = crop_detection(im.copy(), digits)
+    test = np.float32([np.float32(i.resize(SAMPLE_SIZE)) for i in results])
+    test = np.tile(test.reshape((-1, 1, 28, 28)), (1, 3, 1, 1))
+
+    # yhat:list of str=label+prob
+    lab, prob = pred.main(test)
+
+    digits, lab, prob = choose(digits, lab, prob)
+
+    yhat = ['%d,%.2f' % (lab[i], prob[i]) for i in range(lab.size)]
+
+    font = ImageFont.truetype(FONT_FILE, FONT_SIZE)
+    detected = annotate_detection(im.copy(), digits)
+    recognized = annotate_recognition(detected, digits, yhat, font)
+    recognized.show()
+    recognized.save(resname)
+
+    return digits, lab, prob
+
+
 def main():
     images, labels, num, rows, cols = get_data(LABEL_FILE,
                                                IMAGE_FILE)
@@ -93,34 +123,11 @@ def main():
     for filename in filenames:
         print 'Processing', filename
         img = cv2.imread(filename)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        im = Image.open(filename)
-        im = im.convert('L')
-        digits = detect(gray, CASCADE_FILE)
-        digits = np.array(digits)
-        if digits.shape[0] == 0:
-            continue
-        results = crop_detection(im.copy(), digits)
-        test = np.float32([np.float32(i.resize(SAMPLE_SIZE)) for i in results])
-        test = np.tile(test.reshape((-1, 1, 28, 28)), (1, 3, 1, 1))
 
-        # yhat:list of str=label+prob
-        lab, prob = pred.main(test)
-
-        digits, lab, prob = choose(digits, lab, prob)
-
-        yhat = ['%d,%.2f' % (lab[i], prob[i]) for i in range(lab.size)]
-
-        font = ImageFont.truetype(FONT_FILE, FONT_SIZE)
-        detected = annotate_detection(im.copy(), digits)
-
+        print 'results'
         basename = os.path.basename(filename)
         resultname = RESULT_FILES + '/' + basename
-
-        print 'OpenCV results'
-        recognized = annotate_recognition(detected, digits, yhat, font)
-        recognized.show()
-        recognized.save(resultname.replace('.jpg', '-cv.jpg'))
+        recog(img, resultname.replace('.jpg', '-result.jpg'))
 
 
 if __name__ == '__main__':

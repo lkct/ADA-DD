@@ -1,9 +1,8 @@
 import cv2
 from glob import glob
 
-filenames = glob("*.jpg")
-for f in filenames:
-    img = cv2.imread(f)
+
+def proc(img):
     img = img[525:, :, :]
     img = cv2.resize(img, None, fx=0.5, fy=0.5)
     img = 255 - img
@@ -30,12 +29,21 @@ for f in filenames:
     oimg = cv2.dilate(oimg, kernel, iterations=2)
     # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     oimg = cv2.erode(oimg, kernel)
+    return oimg
 
-    out = oimg[-900:-1, 0:1600, :]
-    cv2.imshow(f, out)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
-    cv2.imwrite('../preproc/'+f, oimg)
+if __name__=='__main__':
+    filenames = glob("*.jpg")
+    for f in filenames:
+        img = cv2.imread(f)
 
-    # break
+        oimg = proc(img)
+
+        out = oimg[-900:-1, 0:1600, :]
+        cv2.imshow(f, out)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        cv2.imwrite('../preproc/'+f, oimg)
+
+        # break
