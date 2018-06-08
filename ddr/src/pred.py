@@ -16,8 +16,8 @@ def ch_dev(arg_params, aux_params, ctx):
 
 
 def main(imgs):
-    # ctx = mx.gpu(0)
-    ctx = mx.cpu(0)
+    ctx = mx.gpu(0)
+    # ctx = mx.cpu(0)
     script_dir = os.path.dirname(__file__)
     sym, arg_params, aux_params = mx.model.load_checkpoint(
         os.path.join(script_dir, '../lenet-mnist-0'), 6)

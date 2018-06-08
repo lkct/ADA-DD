@@ -27,7 +27,7 @@ class MY_GUI():
 
     def set_init_window(self):
         self.init_window_name.title("ADA-DD_DDR ver")
-        self.init_window_name.geometry('1068x681+10+10')
+        self.init_window_name.geometry('250x50+10+10')
         self.init_window_name["bg"] = "pink"
         self.init_window_name.attributes("-alpha", 0.9)
 
@@ -35,15 +35,15 @@ class MY_GUI():
         # self.init_data_label.grid(row=0, column=0)
         # self.result_data_label = Label(self.init_window_name, text="result")
         # self.result_data_label.grid(row=0, column=12)
-        self.log_label = Label(self.init_window_name, text="Log")
-        self.log_label.grid(row=12, column=0)
+        # self.log_label = Label(self.init_window_name, text="Log")
+        # self.log_label.grid(row=12, column=0)
 
-        loa = Image.open('gui/8.jpg')
-        w, h = loa.size
-        loa_resized = resize(w, h, 1000, 500, loa)
-        load = ImageTk.PhotoImage(loa_resized)
-        self.loadLabel = Label(self.init_window_name, image=load)
-        self.loadLabel.grid(row=1, column=0, columnspan=3)
+        # loa = Image.open('gui/8.jpg')
+        # w, h = loa.size
+        # loa_resized = resize(w, h, 1000, 500, loa)
+        # load = ImageTk.PhotoImage(loa_resized)
+        # self.loadLabel = Label(self.init_window_name, image=load)
+        # self.loadLabel.grid(row=1, column=0, columnspan=3)
         #load = PhotoImage(file="F:\\PKU\\workplace\\gui\\8.jpg")
         #loadLabel = Label(self.init_window_name, image=load)
         #loadLabel.grid(row=1, column=0)
@@ -52,13 +52,13 @@ class MY_GUI():
         #self.init_data_Text.grid(row=1, column=0, rowspan=10, columnspan=10)
         # self.result_data_Text = Text(self.init_window_name, width=70, height=49)
         #self.result_data_Text.grid(row=1, column=12, rowspan=15, columnspan=10)
-        self.log_data_Text = Text(
-            self.init_window_name, width=66, height=9)
-        self.log_data_Text.grid(row=13, column=0, columnspan=10)
+        # self.log_data_Text = Text(
+        #     self.init_window_name, width=66, height=9)
+        # self.log_data_Text.grid(row=13, column=0, columnspan=10)
 
         self.img_choose_button = Button(
             self.init_window_name, text="Choose a image", bg="lightblue", width=10, command=self.img_choose_and_recog)
-        self.img_choose_button.grid(row=0, column=3)
+        self.img_choose_button.grid(row=0, column=0)
         # self.str_trans_to_md5_button = Button(
         #     self.init_window_name, text="start", bg="lightblue", width=10, command=None)
         # self.str_trans_to_md5_button.grid(row=1, column=3)
