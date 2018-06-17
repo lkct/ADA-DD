@@ -5,6 +5,9 @@ aug/vis.bmp
 aug/.DS_Store
 aug/.ipynb_checkpoints
 aug/Untitled.ipynb
+ddr/dev
+ddr/preproc
+ddr/redults
 LeNet/*.gz
 LeNet/*ubyte
 LeNet/data
