@@ -47,14 +47,14 @@ Digits Detection for Algorithm Design and Analysis
 │   └── ...
 ├─ LeNet (training script for LeNet(deprecated) and ResNet)
 │   └── ...
-├─ rcnn (deprecated, trail for rcnn detection)
+└─ rcnn (deprecated, trail for rcnn detection)
     └── ...
 ```
 
 ### References
-[1] https://github.com/apache/incubator-mxnet/tree/master/example/image-classification
-[2] https://github.com/tornadomeet/ResNet
-[3] https://github.com/apache/incubator-mxnet/tree/master/example/rcnn
-[4] TODO: ddr repo
-[5] http://yann.lecun.com/exdb/mnist/
+[1] https://github.com/apache/incubator-mxnet/tree/master/example/image-classification  
+[2] https://github.com/tornadomeet/ResNet  
+[3] https://github.com/apache/incubator-mxnet/tree/master/example/rcnn  
+[4] TODO: ddr repo  
+[5] http://yann.lecun.com/exdb/mnist/  
 [6] https://www.nist.gov/srd/nist-special-database-19
