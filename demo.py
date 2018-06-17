@@ -29,13 +29,23 @@ class MY_GUI():
         self.init_window_name.geometry('250x50+10+10')
         self.init_window_name["bg"] = "pink"
         self.init_window_name.attributes("-alpha", 0.9)
+        
+        # loa = Image.open('gui/8.jpg')
+        # w, h = loa.size
+        # loa_resized = resize(w, h, 1000, 500, loa)
+        # load = ImageTk.PhotoImage(loa_resized)
+        # self.loadLabel = Label(self.init_window_name, image=load)
+        # self.loadLabel.grid(row=1, column=0, columnspan=3)
+        #load = PhotoImage(file="F:\\PKU\\workplace\\gui\\8.jpg")
+        #loadLabel = Label(self.init_window_name, image=load)
+        #loadLabel.grid(row=1, column=0)
 
         self.img_choose_button = Button(
             self.init_window_name, text="Choose a image", bg="lightblue", width=10, command=self.img_choose)
         self.img_choose_button.grid(row=0, column=0)
-        self.str_trans_to_md5_button = Button(
-            self.init_window_name, text="start", bg="lightblue", width=10, command=self.img_proc)
-        self.str_trans_to_md5_button.grid(row=0, column=1)
+        #self.str_trans_to_md5_button = Button(
+        #    self.init_window_name, text="start", bg="lightblue", width=10, command=self.img_proc)
+        #self.str_trans_to_md5_button.grid(row=0, column=1)
 
     def img_choose(self):
         filename = askopenfilename(filetypes=[("jpg file", "jpg")])
