@@ -53,6 +53,6 @@ Digits Detection for Algorithm Design and Analysis
 [1] https://github.com/apache/incubator-mxnet/tree/master/example/image-classification  
 [2] https://github.com/tornadomeet/ResNet  
 [3] https://github.com/apache/incubator-mxnet/tree/master/example/rcnn  
-[4] TODO: ddr repo  
+[4] https://github.com/bikz05/digit-recognition
 [5] http://yann.lecun.com/exdb/mnist/  
 [6] https://www.nist.gov/srd/nist-special-database-19
