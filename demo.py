@@ -43,9 +43,9 @@ class MY_GUI():
         self.img_choose_button = Button(
             self.init_window_name, text="Choose a image", bg="lightblue", width=10, command=self.img_choose)
         self.img_choose_button.grid(row=0, column=0)
-        #self.str_trans_to_md5_button = Button(
-        #    self.init_window_name, text="start", bg="lightblue", width=10, command=self.img_proc)
-        #self.str_trans_to_md5_button.grid(row=0, column=1)
+        self.img_proc_button = Button(
+            self.init_window_name, text="start", bg="lightblue", width=10, command=self.img_proc)
+        self.img_proc_button.grid(row=0, column=1)
 
     def img_choose(self):
         filename = askopenfilename(filetypes=[("jpg file", "jpg")])
@@ -69,7 +69,7 @@ class MY_GUI():
         annofile.close()
         print 'done'
 
-    def str_trans_to_md5(self):
+    def wrong_answer(self):
         src = self.init_data_Text.get(
             1.0, END).strip().replace("\n", "").encode()
         #print("src =",src)
