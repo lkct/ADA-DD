@@ -3,10 +3,12 @@ LeNet/*ubyte
 LeNet/model
 LeNet/predict
 LeNet/data
+rcnn/model
+rcnn/data
+
+*.pyc
 aug/*ubyte
 aug/vis.bmp
 aug/.DS_Store
 aug/.ipynb_checkpoints
 aug/Untitled.ipynb
-rcnn/model
-rcnn/data
