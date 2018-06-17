@@ -30,7 +30,7 @@ Digits Detection for Algorithm Design and Analysis
 考虑到多方面因素，模型采用了适用于cifar10的ResNet-8，实现参考了[2]。训练数据合并了[5][6]中的训练和测试集，而测试使用了提供的数据生成器里的样本。训练后从所有epoch中选取了测试准确率最高的模型作为使用的模型。调用代码稍作修改后与[4]中代码结合，替换其中的SVM分类器。
 
 ### How to Use
-只需执行`python demo.py`按GUI提示操作即可。结果同时以图片输出到result.jpg以及以文本的bbox坐标加类别和置信度输出到result.txt。
+只需执行`python demo.py`按GUI提示操作即可。结果同时以图片输出到result.jpg以及以文本的bbox坐标加类别和置信度输出到result.txt。图片结果对应原图的1/2大小，文本结果也对应于1/2大小的像素位置。
 
 ### Directory structure
 ```
@@ -42,8 +42,6 @@ Digits Detection for Algorithm Design and Analysis
 ├─ ddr (main scripts for detection and recognition)
 │   └── ...
 ├─ dev (example test data)
-│   └── ...
-├─ gui (image for gui)
 │   └── ...
 ├─ LeNet (training script for LeNet(deprecated) and ResNet)
 │   └── ...

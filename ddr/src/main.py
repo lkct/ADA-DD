@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PIL import Image, ImageFont
+import os
+from glob import glob
+
 import cv2
 import numpy as np
+from PIL import Image, ImageFont
 
-from detect import detect, crop_detection, annotate_detection
-from load_labels import get_data
-from recognize import cvtrain, sktrain, preprocess
-from recognize import annotate_recognition
+import col
 import pred
-from glob import glob
-import os
+from detect import annotate_detection, crop_detection, detect
+from load_labels import get_data
+from recognize import annotate_recognition, cvtrain, preprocess, sktrain
 
 SAMPLE_SIZE = (28, 28)
 SZ = 28
@@ -50,7 +51,7 @@ def choose(digits, lab, prob):
     chosen = []
     n = lab.size
     for i in range(n):
-        if prob[i] < 0.5:
+        if prob[i] < 0.4:
             continue
         flag = False
         for j in range(i - 1):
@@ -84,7 +85,7 @@ def choose(digits, lab, prob):
     return digits, lab, prob
 
 
-def recog(img, resname):
+def recog(img, oriimg,  resname):
     script_dir = os.path.dirname(__file__)
     CASCADE_FILE = os.path.join(script_dir, '../classifier/cascade.xml')
 
@@ -101,11 +102,14 @@ def recog(img, resname):
 
     # yhat:list of str=label+prob
     lab, prob = pred.main(test)
-
     digits, lab, prob = choose(digits, lab, prob)
-
     yhat = ['%d,%.2f' % (lab[i], prob[i]) for i in range(lab.size)]
 
+    digits[:, 1] += 525 / 2
+    oriimg = cv2.resize(oriimg, None, fx=0.5, fy=0.5)
+
+    im = Image.fromarray(cv2.cvtColor(oriimg, cv2.COLOR_BGR2RGB))
+    im = im.convert('L')
     font = ImageFont.truetype(FONT_FILE, FONT_SIZE)
     detected = annotate_detection(im.copy(), digits)
     recognized = annotate_recognition(detected, digits, yhat, font)
@@ -113,6 +117,11 @@ def recog(img, resname):
     recognized.save(resname)
 
     return digits, lab, prob
+
+
+def smain(img, resname):
+    pimg = col.proc(img)
+    return recog(pimg, img, resname)
 
 
 def main():

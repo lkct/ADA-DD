@@ -71,7 +71,7 @@ def get_font_size(font):
     return max(font.getsize(TEST_FONT))
 
 
-def annotate_recognition(im, regions, labels, font, color=255):
+def annotate_recognition(im, regions, labels, font, color=0):
     clone = im.copy()
     draw = ImageDraw.Draw(clone)
     size = get_font_size(font)

@@ -4,7 +4,6 @@ from PIL import Image, ImageTk
 import hashlib
 import time
 import cv2
-import ddr.dev.col as col
 import ddr.src.main as smain
 
 LOG_LINE_NUM = 0
@@ -31,45 +30,24 @@ class MY_GUI():
         self.init_window_name["bg"] = "pink"
         self.init_window_name.attributes("-alpha", 0.9)
 
-        # self.init_data_label = Label(self.init_window_name, text="to recog")
-        # self.init_data_label.grid(row=0, column=0)
-        # self.result_data_label = Label(self.init_window_name, text="result")
-        # self.result_data_label.grid(row=0, column=12)
-        # self.log_label = Label(self.init_window_name, text="Log")
-        # self.log_label.grid(row=12, column=0)
-
-        # loa = Image.open('gui/8.jpg')
-        # w, h = loa.size
-        # loa_resized = resize(w, h, 1000, 500, loa)
-        # load = ImageTk.PhotoImage(loa_resized)
-        # self.loadLabel = Label(self.init_window_name, image=load)
-        # self.loadLabel.grid(row=1, column=0, columnspan=3)
-        #load = PhotoImage(file="F:\\PKU\\workplace\\gui\\8.jpg")
-        #loadLabel = Label(self.init_window_name, image=load)
-        #loadLabel.grid(row=1, column=0)
-
-        # self.init_data_Text = Text(self.init_window_name, width=67, height=35)
-        #self.init_data_Text.grid(row=1, column=0, rowspan=10, columnspan=10)
-        # self.result_data_Text = Text(self.init_window_name, width=70, height=49)
-        #self.result_data_Text.grid(row=1, column=12, rowspan=15, columnspan=10)
-        # self.log_data_Text = Text(
-        #     self.init_window_name, width=66, height=9)
-        # self.log_data_Text.grid(row=13, column=0, columnspan=10)
-
         self.img_choose_button = Button(
-            self.init_window_name, text="Choose a image", bg="lightblue", width=10, command=self.img_choose_and_recog)
+            self.init_window_name, text="Choose a image", bg="lightblue", width=10, command=self.img_choose)
         self.img_choose_button.grid(row=0, column=0)
-        # self.str_trans_to_md5_button = Button(
-        #     self.init_window_name, text="start", bg="lightblue", width=10, command=None)
-        # self.str_trans_to_md5_button.grid(row=1, column=3)
+        self.str_trans_to_md5_button = Button(
+            self.init_window_name, text="start", bg="lightblue", width=10, command=self.img_proc)
+        self.str_trans_to_md5_button.grid(row=0, column=1)
 
-    def img_choose_and_recog(self):
+    def img_choose(self):
         filename = askopenfilename(filetypes=[("jpg file", "jpg")])
         # filename = '/mnt/ssd/ADA-DD/dev/10.jpg'
         print filename
-        img = cv2.imread(filename)
-        img = col.proc(img)
-        anno, lab, prob = smain.recog(img, 'result.jpg')
+        self.img = cv2.imread(filename)
+        print self.img.shape
+        # cv2.imshow('original img', cv2.resize(self.img, None, fx=0.25, fy=0.25))
+
+    def img_proc(self):
+        # cv2.destroyAllWindows()
+        anno, lab, prob = smain.smain(self.img, 'result.jpg')
         if anno.shape[0] != 0:
             anno[:, 2] += anno[:, 0]
             anno[:, 3] += anno[:, 1]
